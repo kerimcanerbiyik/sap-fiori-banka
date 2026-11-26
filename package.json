@@ -1,0 +1,27 @@
+{
+  "name": "cakma-banka",
+  "version": "3.0.0",
+  "description": "FioriBank - SAP CAP & SAPUI5 Oyunlastirilmis Banka Uygulamasi",
+  "scripts": {
+    "start": "npx cds deploy --to sqlite:db.sqlite && npx cds-serve",
+    "watch": "npx cds watch"
+  },
+  "dependencies": {
+    "@sap/cds": "^8",
+    "express": "^4"
+  },
+  "devDependencies": {
+    "@sap/cds-dk": "^8",
+    "@cap-js/sqlite": "^1"
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "credentials": {
+          "url": "db.sqlite"
+        }
+      }
+    }
+  }
+}

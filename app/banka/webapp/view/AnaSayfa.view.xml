@@ -1,0 +1,159 @@
+<mvc:View controllerName="banka.controller.AnaSayfa"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:core="sap.ui.core">
+    <App>
+        <Page title="FioriBank - Dijital Şube (Oyun Simülasyonu v3)">
+            <headerContent>
+                <Button text="Şans Çarkı Çevir" icon="sap-icon://activate" type="Accept" press=".onSansCarki"/>
+                <Button text="Yenile" icon="sap-icon://refresh" press=".onVerileriYukle"/>
+            </headerContent>
+            <content>
+                <!-- Hesap Özeti Paneli -->
+                <Panel headerText="Aktif Hesap Özeti" class="sapUiSmallMarginBottom">
+                    <HBox justifyContent="SpaceBetween" alignItems="Center" wrap="Wrap" class="sapUiSmallMargin">
+                        <VBox>
+                            <Label text="Aktif Hesap Seçin:"/>
+                            <Select id="selHesap" items="{/hesaplar}" change=".onHesapDegisti" width="280px">
+                                <core:Item key="{hesapNo}" text="{sahipAdi} ({hesapNo})"/>
+                            </Select>
+                            <ObjectStatus text="Kredi Borcu: {/seciliHesap/krediBorcu} TRY" state="Error" class="sapUiTinyMarginTop"/>
+                        </VBox>
+                        <VBox alignItems="End">
+                            <Label text="Kullanılabilir Bakiye"/>
+                            <ObjectNumber number="{/seciliHesap/bakiye}" unit="TRY" state="Success"/>
+                            <HBox class="sapUiTinyMarginTop" wrap="Wrap">
+                                <Button text="+10.000 TRY Kredi Çek" type="Emphasized" press=".onKrediCek" class="sapUiTinyMarginEnd"/>
+                                <Button text="Kredi Borcunu Öde" type="Reject" press=".onKrediOde" class="sapUiTinyMarginEnd"/>
+                                <Button text="%5 Günlük Faiz İşlet" type="Accept" press=".onGunlukFaiz"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </Panel>
+
+                <!-- Sekmeli Oyun Alanı -->
+                <IconTabBar class="sapUiResponsiveContentPadding">
+                    <items>
+                        <!-- 1. Sekme: Para Transferi -->
+                        <IconTabFilter text="Para Transferi (EFT)" icon="sap-icon://money-bills">
+                            <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+                                <Label text="Alıcı Hesap No (Örn: TR00 5678 veya TR00 9999)"/>
+                                <Input id="inpAlici" placeholder="TR00 5678"/>
+                                <Label text="Tutar (TRY)"/>
+                                <Input id="inpTutar" type="Number" placeholder="Örn: 2500"/>
+                                <Label text="Açıklama"/>
+                                <Input id="inpAciklama" placeholder="Kira, oyun içi ticaret vb."/>
+                                <Label text=""/>
+                                <Button text="Para Gönder" type="Emphasized" icon="sap-icon://paper-plane" press=".onTransferYap"/>
+                            </f:SimpleForm>
+                        </IconTabFilter>
+
+                        <!-- 2. Sekme: Canlı Borsa ve Kripto -->
+                        <IconTabFilter text="Borsa ve Kripto" icon="sap-icon://line-chart">
+                            <VBox>
+                                <Toolbar>
+                                    <Title text="Canlı Piyasa Fiyatları"/>
+                                    <ToolbarSpacer/>
+                                    <Button text="Piyasayı Güncelle (Fiyat Dalgalandır)" type="Emphasized" icon="sap-icon://trend-up" press=".onPiyasaGuncelle"/>
+                                </Toolbar>
+                                <Table items="{/piyasa}" class="sapUiSmallMarginBottom">
+                                    <columns>
+                                        <Column><Text text="Sembol"/></Column>
+                                        <Column><Text text="Varlık Adı"/></Column>
+                                        <Column><Text text="Birim Fiyat"/></Column>
+                                        <Column><Text text="Değişim %"/></Column>
+                                        <Column><Text text="İşlem"/></Column>
+                                    </columns>
+                                    <items>
+                                        <ColumnListItem>
+                                            <cells>
+                                                <ObjectIdentifier title="{sembol}"/>
+                                                <Text text="{ad}"/>
+                                                <ObjectNumber number="{fiyat}" unit="TRY"/>
+                                                <ObjectStatus text="{degisim}%" state="{= ${degisim} >= 0 ? 'Success' : 'Error' }"/>
+                                                <HBox>
+                                                    <Button text="1 Adet Al" type="Accept" press=".onVarlikAl" class="sapUiTinyMarginEnd"/>
+                                                    <Button text="1 Adet Sat" type="Reject" press=".onVarlikSat"/>
+                                                </HBox>
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                                <Table items="{/portfoy}" headerText="Mevcut Yatırım Portföyünüz">
+                                    <columns>
+                                        <Column><Text text="Hesap No"/></Column>
+                                        <Column><Text text="Varlık Sembolü"/></Column>
+                                        <Column><Text text="Sahip Olunan Adet"/></Column>
+                                    </columns>
+                                    <items>
+                                        <ColumnListItem>
+                                            <cells>
+                                                <Text text="{hesapNo}"/>
+                                                <ObjectIdentifier title="{sembol}"/>
+                                                <ObjectNumber number="{adet}" unit="Adet"/>
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                            </VBox>
+                        </IconTabFilter>
+
+                        <!-- 3. Sekme: Fatura Ödeme -->
+                        <IconTabFilter text="Fatura Ödeme" icon="sap-icon://receipt">
+                            <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+                                <Label text="Kurum Seçin"/>
+                                <Select id="selKurum">
+                                    <core:Item key="Boğaziçi Elektrik" text="Boğaziçi Elektrik"/>
+                                    <core:Item key="Fiber İnternet A.Ş." text="Fiber İnternet A.Ş."/>
+                                    <core:Item key="Belediye Su ve Vergi" text="Belediye Su ve Vergi"/>
+                                    <core:Item key="Lüks Rezidans Kirası" text="Lüks Rezidans Kirası"/>
+                                </Select>
+                                <Label text="Fatura Tutarı (TRY)"/>
+                                <Input id="inpFaturaTutar" type="Number" value="1250"/>
+                                <Label text=""/>
+                                <Button text="Faturayı Öde" type="Emphasized" press=".onFaturaOde"/>
+                            </f:SimpleForm>
+                        </IconTabFilter>
+
+                        <!-- 4. Sekme: Yeni Hesap Aç -->
+                        <IconTabFilter text="Yeni Hesap Aç" icon="sap-icon://add-employee">
+                            <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+                                <Label text="Yeni Hesap No"/>
+                                <Input id="inpYeniHesapNo" placeholder="Örn: TR00 7777"/>
+                                <Label text="Hesap Sahibi Adı"/>
+                                <Input id="inpYeniSahip" placeholder="Örn: Holding A.Ş. veya 2. Oyuncu"/>
+                                <Label text="Başlangıç Bakiyesi (TRY)"/>
+                                <Input id="inpYeniBakiye" type="Number" value="25000"/>
+                                <Label text=""/>
+                                <Button text="Hesabı Oluştur" type="Accept" press=".onYeniHesapAc"/>
+                            </f:SimpleForm>
+                        </IconTabFilter>
+                    </items>
+                </IconTabBar>
+
+                <!-- Dekontlar Tablosu -->
+                <Table items="{/islemler}" headerText="Son Hesap Hareketleri (Canlı Dekontlar)" class="sapUiSmallMarginTop">
+                    <columns>
+                        <Column><Text text="İşlem Tipi"/></Column>
+                        <Column><Text text="Gönderen"/></Column>
+                        <Column><Text text="Alıcı"/></Column>
+                        <Column><Text text="Açıklama"/></Column>
+                        <Column><Text text="Tutar"/></Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <ObjectStatus text="{islemTipi}" state="{= ${islemTipi} === 'FAIZ' || ${islemTipi} === 'ODUL' || ${islemTipi} === 'BORSA SATIM' ? 'Success' : 'Warning' }"/>
+                                <Text text="{gonderenNo}"/>
+                                <Text text="{aliciNo}"/>
+                                <Text text="{aciklama}"/>
+                                <ObjectNumber number="{tutar}" unit="TRY"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </content>
+        </Page>
+    </App>
+</mvc:View>
